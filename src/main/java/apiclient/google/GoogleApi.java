@@ -1,4 +1,4 @@
-package inescid.util.googlesheets;
+package apiclient.google;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,6 +9,8 @@ import java.util.List;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -79,7 +81,7 @@ public class GoogleApi {
   public static Sheets getSheetsService() throws IOException {
       Credential credential = getCredentials();
       return new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-              .setApplicationName(APPLICATION_NAME)
+              .setApplicationName(APPLICATION_NAME).setHttpRequestInitializer(createHttpRequestInitializer(credential))
               .build();
   }
   
@@ -99,4 +101,19 @@ public class GoogleApi {
 
   protected GoogleApi() {
   }
+  
+	private static HttpRequestInitializer createHttpRequestInitializer(final HttpRequestInitializer requestInitializer) {
+		return new HttpRequestInitializer() {
+			@Override
+			public void initialize(final HttpRequest httpRequest) throws IOException {
+				requestInitializer.initialize(httpRequest);
+				httpRequest.setConnectTimeout(10 * 60000); // 3 minutes connect timeout
+				httpRequest.setReadTimeout(10 * 60000); // 3 minutes read timeout
+			}
+		};
+	}
 }
+
+
+
+

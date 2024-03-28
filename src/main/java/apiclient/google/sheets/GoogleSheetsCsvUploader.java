@@ -1,4 +1,4 @@
-package inescid.util.googlesheets;
+package apiclient.google.sheets;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +32,8 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.SpreadsheetProperties;
 import com.google.api.services.sheets.v4.model.UpdateSheetPropertiesRequest;
 import com.google.api.services.sheets.v4.model.ValueRange;
+
+import apiclient.google.GoogleApi;
 
 public class GoogleSheetsCsvUploader {
 	public static void update(String spreadsheetId, File csvFile) throws IOException {

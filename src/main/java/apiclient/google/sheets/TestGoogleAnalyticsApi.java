@@ -1,4 +1,4 @@
-package inescid.util.googlesheets;
+package apiclient.google.sheets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +22,8 @@ import com.google.api.services.analyticsreporting.v4.model.Report;
 import com.google.api.services.analyticsreporting.v4.model.ReportRequest;
 import com.google.api.services.analyticsreporting.v4.model.ReportRow;
 import com.google.api.services.sheets.v4.Sheets;
+
+import apiclient.google.GoogleApi;
 
 
 public class TestGoogleAnalyticsApi {

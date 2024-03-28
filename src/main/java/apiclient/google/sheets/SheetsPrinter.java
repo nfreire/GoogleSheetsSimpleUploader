@@ -1,9 +1,16 @@
-package inescid.util.googlesheets;
+package apiclient.google.sheets;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.Sheets.Spreadsheets.Get;
@@ -14,6 +21,8 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
+
+import apiclient.google.GoogleApi;
 
 public class SheetsPrinter {
 	String spreadsheetId;
@@ -32,13 +41,14 @@ public class SheetsPrinter {
 		vals.add(line);
 	}
 	
-	public void print(Object value) {
-		line.add(value);
+	public void print(Object... values) {
+		for(Object v: values)
+			printVal(v);			
 	}
 	
 	public void printRecord(Object... values) {
 		for(Object v: values)
-			line.add(v);			
+			printVal(v);			
 		maxCols=Math.max(maxCols, line.size());
 		line=new ArrayList<Object>();
 		vals.add(line);
@@ -47,6 +57,10 @@ public class SheetsPrinter {
 		maxCols=Math.max(maxCols, line.size());
 		line=new ArrayList<Object>();
 		vals.add(line);
+	}
+
+	private void printVal(Object obj) {
+		line.add(obj==null ? "" : obj);
 	}
 	
 	public void close() throws IOException {
@@ -79,9 +93,49 @@ public class SheetsPrinter {
 			int rows=vRange.getValues().size();
 			
 			Update append = service.spreadsheets().values().update(spreadsheetId, GoogleSheetsApi.makeRangeExpression(sheetTitle, rows, cols) , vRange);
-			append.setValueInputOption("RAW");
+//			append.setValueInputOption("RAW");
+			append.setValueInputOption("USER_ENTERED");
 			append.execute();
 		}
+	}
+
+	public String toCsv()  {
+		StringBuffer sb=new StringBuffer();
+		try {
+			CSVPrinter printer=new CSVPrinter(sb, CSVFormat.DEFAULT);
+			vals.forEach(cells -> {
+				try {
+					cells.forEach(cell -> {
+						try {
+							printer.print(cell.toString());
+						} catch (IOException e) {
+							//should  not hapen when writing to a StringBuffer
+							throw new RuntimeException(e.getMessage(), e);
+						}
+					});
+					printer.println();
+				} catch (IOException e) {
+					//should  not hapen when writing to a StringBuffer
+					throw new RuntimeException(e.getMessage(), e);
+				}
+			});
+			printer.close();
+			return sb.toString();
+		} catch (IOException e) {
+			//should  not hapen when writing to a StringBuffer
+			throw new RuntimeException(e.getMessage(), e);
+		}		
+	}
+
+	public void printCsv(Reader reader) throws IOException {
+		CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT);
+		for(CSVRecord rec: csvParser) {
+			for(String v: rec) {
+				print(v);
+			}
+			println();
+		}
+		csvParser.close();
 	}
 
 	
